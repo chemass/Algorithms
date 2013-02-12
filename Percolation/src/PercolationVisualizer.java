@@ -20,8 +20,8 @@ import java.awt.Font;
 
 public class PercolationVisualizer {
     // delay in milliseconds (controls animation speed)
-    private final static int delay = 100;
-
+    private final static int delay = 25;
+    private static int percolated = 0;
     // draw N-by-N percolation system
     public static void draw(Percolation perc, int N) {
         StdDraw.clear();
@@ -52,9 +52,12 @@ public class PercolationVisualizer {
         StdDraw.setFont(new Font("SansSerif", Font.PLAIN, 12));
         StdDraw.setPenColor(StdDraw.BLACK);
         StdDraw.text(.25*N, -N*.025, opened + " open sites");
-        if (perc.percolates()) StdDraw.text(.75*N, -N*.025, "percolates");
-        else                   StdDraw.text(.75*N, -N*.025, "does not percolate");
-
+        if (perc.percolates()) { 
+        	if(percolated == 0) percolated = opened;
+        	StdDraw.text(.75*N, -N*.025, "percolates at " + percolated);
+        } else {
+        	StdDraw.text(.75*N, -N*.025, "does not percolate");
+        }
     }
 
     public static void main(String[] args) {

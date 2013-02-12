@@ -1,156 +1,190 @@
 /**
- *
- * @author  Che Coxshall
- * @login   ccoxshall@gmail.com
- * @date    11th February 2013
+ * 
+ * @author Che Coxshall
+ * @login ccoxshall@gmail.com
+ * @date 11th February 2013
  */
 public class Percolation {
 
-    /**
+	/**
 	 * Size of the grid.
 	 */
-    private int size;
-    /**
-     * open/closed sites.
-     */
-    private boolean[] sites;
-    /**
-     * QuickUnion algorithm.
-     */
-    private WeightedQuickUnionUF uf;
+	private int size;
+	/**
+	 * open/closed sites.
+	 */
+	private boolean[] sites;
+	/**
+	 * QuickUnion algorithm for isConnected.
+	 */
+	private WeightedQuickUnionUF uf1;
+	/**
+	 * QuickUnion algorithm for isFull.
+	 */
+	private WeightedQuickUnionUF uf2;
 
-    /**
-     * Creates a new percolation grid N by N.
-     * All sites are initialised full.
-     * @param gridSize Desired size of the grid.
-     */
-    public Percolation(final int gridSize) {
+	/**
+	 * Creates a new percolation grid N by N. All sites are initialised full.
+	 * 
+	 * @param gridSize
+	 *            Desired size of the grid.
+	 */
+	public Percolation(int gridSize) {
 
-        this.size = gridSize;
-        //0 will be top vSite, (N * N) + 2 will be the bottom vSite
-        int siteCount = (gridSize * gridSize) + 2;
-        // +1 for ease - can use the same uf index as the uf alg.
-        this.sites = new boolean[siteCount];
-        this.sites[0] = true;
-        this.sites[siteCount - 1] = true;
-        
-        this.uf = new WeightedQuickUnionUF(siteCount);
-    }
+		this.size = gridSize;
+		// 0 will be top vSite, no virtual bottom site
+		int siteCount = (gridSize * gridSize) + 2;
+		// +1 for ease - can use the same uf index as the uf alg.
+		this.sites = new boolean[siteCount];
+		this.sites[0] = true;
+		this.sites[siteCount - 1] = true;
 
-    /**
-     * Opens the site at the specified position if it is not already open.
-     * @param i 1 based x position.
-     * @param j 1 based y position.
-     */
-    public final void open(final int i, final int j) {
-        // open site (row i, column j) if it is not already
-        checkIndex(i);
-        checkIndex(j);
+		this.uf1 = new WeightedQuickUnionUF(siteCount);
+		this.uf2 = new WeightedQuickUnionUF(siteCount - 1);
+	}
 
-        int sI = i - 1;
-        int sJ = j - 1;
-        int csId = coordsToUF(sI, sJ);
+	/**
+	 * Opens the site at the specified position if it is not already open.
+	 * 
+	 * @param i
+	 *            1 based x position.
+	 * @param j
+	 *            1 based y position.
+	 */
+	public void open(int i, int j) {
+		if (!validateIndex(i)) {
+			throw new java.lang.IndexOutOfBoundsException("i is out of bounds");
+		}
+		if (!validateIndex(j)) {
+			throw new java.lang.IndexOutOfBoundsException("j is out of bounds");
+		}
 
-        //avoids extra method call and extra value checking
-        if (!sites[csId]) {
-            sites[csId] = true;
+		// get site index
+		int csId = coordsToUF(i, j);
 
-            int ufId;
+		// skip extra method call and value checking
+		if (!sites[csId]) {
+			sites[csId] = true;
 
-            //connect left?
-            if (sJ > 0) {
-            	ufId = coordsToUF(sI, sJ - 1);
-            	if (sites[ufId]) {
-            		this.uf.union(csId, ufId);
-            	}
-            }
+			int ufId;
 
-            //connect right?
-            if (j < size) {
-            	ufId = coordsToUF(sI, sJ + 1);
-            	if (sites[ufId]) {
-            		this.uf.union(csId, ufId);
-            	}
-            }
+			// connect left?
+			if (j > 1) {
+				ufId = coordsToUF(i, j - 1);
+				if (sites[ufId]) {
+					this.uf1.union(ufId, csId);
+					this.uf2.union(ufId, csId);
+				}
+			}
 
-            //connect top?
-        	ufId = coordsToUF(sI - 1, sJ);
-        	if (sites[ufId]) {
-        		this.uf.union(csId, ufId);
-        	}
+			// connect right?
+			if (j < size) {
+				ufId = coordsToUF(i, j + 1);
+				if (sites[ufId]) {
+					this.uf1.union(ufId, csId);
+					this.uf2.union(ufId, csId);
+				}
+			}
 
-            //connect bottom?
-        	ufId = coordsToUF(sI + 1, sJ);
-        	if (sites[ufId]) {
-        		this.uf.union(csId, ufId);
-        	}
-        }
-    }
+			// connect top?
+			if (i > 1) {
+				ufId = coordsToUF(i - 1, j);
+				if (sites[ufId]) {
+					this.uf1.union(ufId, csId);
+					this.uf2.union(ufId, csId);
+				}
+			} else {
+				// connect virtual site
+				this.uf1.union(csId, 0);
+				this.uf2.union(csId, 0);
+			}
 
-    /**
-     * Indicates if the site at the specified position is open.
-     * @param i 1 based x position.
-     * @param j 1 based y position.
-     * @return true if site is open.
-     */
-    public final boolean isOpen(final int i, final int j) {
-        // is site (row i, column j) open?
-        checkIndex(i);
-        checkIndex(j);
+			// connect bottom?
+			if (i < this.size) {
+				ufId = coordsToUF(i + 1, j);
+				if (sites[ufId]) {
+					this.uf1.union(ufId, csId);
+					this.uf2.union(ufId, csId);
+				}
+			} else {
+				// connect virtual site
+				this.uf1.union(csId, (this.size * this.size) + 1);
+			}
+		}
+	}
 
-        return sites[coordsToUF(i - 1, j - 1)];
-    }
+	/**
+	 * Indicates if the site at the specified position is open.
+	 * 
+	 * @param i
+	 *            1 based x position.
+	 * @param j
+	 *            1 based y position.
+	 * @return true if site is open.
+	 */
+	public boolean isOpen(int i, int j) {
+		if (!validateIndex(i)) {
+			throw new java.lang.IndexOutOfBoundsException("i is out of bounds");
+		}
+		if (!validateIndex(j)) {
+			throw new java.lang.IndexOutOfBoundsException("j is out of bounds");
+		}
 
-    /**
-     * Indicates if the site at the specified position is full.
-     * @param i 1 based x position.
-     * @param j 1 based y position.
-     * @return true if site is full.
-     */
-    public final boolean isFull(final int i, final int j) {
-        checkIndex(i);
-        checkIndex(j);
+		return sites[coordsToUF(i, j)];
+	}
 
-        return this.uf.connected(0, coordsToUF(i - 1, j - 1));
-    }
+	/**
+	 * Indicates if the site at the specified position is full.
+	 * 
+	 * @param i
+	 *            1 based x position.
+	 * @param j
+	 *            1 based y position.
+	 * @return true if site is full.
+	 */
+	public boolean isFull(int i, int j) {
+		if (!validateIndex(i)) {
+			throw new java.lang.IndexOutOfBoundsException("i is out of bounds");
+		}
+		if (!validateIndex(j)) {
+			throw new java.lang.IndexOutOfBoundsException("j is out of bounds");
+		}
 
-    /**
-     * Indicates if the grid percolates.
-     * @return true if there is a connected path from top to bottom.
-     */
-    public final boolean percolates() {
-        // does the system percolate?
-        return this.uf.connected(0, (this.size * this.size) + 1);
-    }
+		return this.uf2.connected(coordsToUF(i, j), 0);
+	}
+
+	/**
+	 * Indicates if the grid percolates.
+	 * 
+	 * @return true if there is a connected path from top to bottom.
+	 */
+	public boolean percolates() {
+		return this.uf1.connected(0, (this.size * this.size) + 1);
+	}
 
 	/**
 	 * Checks to ensure the provided index is within bounds.
-	 * @param index index to be checked.
+	 * 
+	 * @param index
+	 *            index to be checked.
 	 */
-	private void checkIndex(final int index) {
-		if (index < 1) {
-            throw new java.lang.IllegalArgumentException("index cannot be less than 1");
-        }
-        if (index > size + 1) {
-            throw new java.lang.IllegalArgumentException("index cannot be greater than " + (this.size + 1));
-        }
+	private boolean validateIndex(final int index) {
+		return index > 0 && index <= this.size;
 	}
 
-    /**
-     * Transforms x, y coordinates to the grid id.
-     * @param x 0 based x coordinate.
-     * @param y 0 based y coordinate.
-     * @return grid id
-     */
-    private int coordsToUF(final int x, final int y) {
-    	if (x == -1) {
-    		return 0;
-    	} 
-
-    	if (x == this.size) {
-    		return this.size + 1;
-    	}
-    		
-        return ((x * size) + y) + 1;
-    }
+	/**
+	 * Transforms x, y coordinates to the grid id.
+	 * 
+	 * @param x
+	 *            1 based x coordinate.
+	 * @param y
+	 *            1 based y coordinate.
+	 * @return grid id
+	 */
+	private int coordsToUF(final int x, final int y) {
+		int row = x - 1;
+		int col = y - 1;
+		int id = (((row) * size) + (col)) + 1;
+		return id;
+	}
 }

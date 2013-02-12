@@ -1,104 +1,126 @@
 /**
  * class to perform a series of computational experiments.
- * @author  Che Coxshall
- * @login   ccoxshall@gmail.com
- * @date    11th February 2013
+ * 
+ * @author Che Coxshall
+ * @login ccoxshall@gmail.com
+ * @date 11th February 2013
  */
-public final class PercolationStats {
+public class PercolationStats {
 
-    /**
-     * Percolation class that will be used to perform the experiments.
-     */
-    private Percolation p;
-    /**
-     * Number of tests to be run.
-     */
-    private int testCount;
-    /**
-     * Array containing the test results.
-     */
-    private double[] results;
+	/**
+	 * Number of tests to be run.
+	 */
+	private int testCount;
+	/**
+	 * Array containing the test results.
+	 */
+	private double[] results;
 
-    /**
-     * Perform T number of experiments on a N by N grid.
-     * @param gridSize size of the grid.
-     * @param count number of passes.
-     */
-    public PercolationStats(final int gridSize, final int count) {
+	/**
+	 * Perform T number of experiments on a N by N grid.
+	 * 
+	 * @param gridSize
+	 *            size of the grid.
+	 * @param count
+	 *            number of passes.
+	 */
+	public PercolationStats(int gridSize, int count) {
 
-        testCount = count;
-        results = new double[count];
+		if (gridSize < 1) {
+			throw new java.lang.IllegalArgumentException(
+			        "gridSize cannot be less than 1");
+		}
+		if (count < 1) {
+			throw new java.lang.IllegalArgumentException(
+			        "count cannot be less than 1");
+		}
 
-        for (int i = 0; i < count; i++) {
-            p = new Percolation(gridSize);
-            int openSiteCount = 0;
+		testCount = count;
+		results = new double[count];
 
-            do {
-                int r = StdRandom.uniform(gridSize) + 1;
-                int c = StdRandom.uniform(gridSize) + 1;
-                if (!p.isOpen(r, c)) {
-                    p.open(r, c);
-                    openSiteCount++;
-                }
-            } while(!p.percolates());
+		for (int i = 0; i < count; i++) {
 
-            results[i] = (double) openSiteCount
-                    / (double) (gridSize * gridSize);
-        }
-    }
+			Percolation p = new Percolation(gridSize);
+			int openSiteCount = 0;
+			int row = 0;
+			int column = 0;
 
-    /**
-     * gets the mean average of the results.
-     * @return the mean average of the results.
-     */
-    public double mean() {
-        return StdStats.mean(results);
-    }
+			do {
 
-    /**
-     * gets the standard deviation of the results.
-     * @return the standard deviation of the results.
-     */
-    public double stddev() {
-        return this.testCount == 1 ?
-        		Double.NaN :
-        		StdStats.stddev(results);
-    }
+				row = StdRandom.uniform(gridSize) + 1;
+				column = StdRandom.uniform(gridSize) + 1;
 
-    /**
-     * gets the lower bound of the 95% confidence interval.
-     * @return the lower bound of the 95% confidence interval.
-     */
-    public double confidenceLo() {
-        return mean() - (stddev() / Math.sqrt(testCount));
-    }
+				if (!p.isOpen(row, column)) {
+					p.open(row, column);
+					openSiteCount++;
+				}
 
-    /**
-     * gets the upper bound of the 95% confidence interval.
-     * @return the upper bound of the 95% confidence interval.
-     */
-    public double confidenceHi() {
-        return mean() + (stddev() / Math.sqrt(testCount));
-    }
+			} while (!p.percolates());
 
-    /**
-     * test client to perform the experiments.
-     * @param args provided arguments in the format N T
-     */
-    public static void main(final String[] args) {
+			p = null;
 
-        if (args.length != 2) {
-            throw new java.lang.IllegalArgumentException("Wrong number of arguments");
-        }
+			results[i] = (double) openSiteCount
+			        / (double) (gridSize * gridSize);
+		}
+	}
 
-        int n = Integer.parseInt(args[0]);
-        int t = Integer.parseInt(args[1]);
+	/**
+	 * gets the mean average of the results.
+	 * 
+	 * @return the mean average of the results.
+	 */
+	public double mean() {
+		return StdStats.mean(results);
+	}
 
-        PercolationStats ps = new PercolationStats(n, t);
+	/**
+	 * gets the standard deviation of the results.
+	 * 
+	 * @return the standard deviation of the results.
+	 */
+	public double stddev() {
+		return this.testCount == 1 ? Double.NaN : StdStats.stddev(results);
+	}
 
-        StdOut.println("mean\t\t\t= " + ps.mean());
-        StdOut.println("stddev\t\t\t= " + ps.stddev());
-        StdOut.println("95% confidence interval\t= " +
-                ps.confidenceLo() + ", " + ps.confidenceHi());
-    }
+	/**
+	 * gets the lower bound of the 95% confidence interval.
+	 * 
+	 * @return the lower bound of the 95% confidence interval.
+	 */
+	public double confidenceLo() {
+		return mean() - (stddev() / Math.sqrt(testCount));
+	}
+
+	/**
+	 * gets the upper bound of the 95% confidence interval.
+	 * 
+	 * @return the upper bound of the 95% confidence interval.
+	 */
+	public double confidenceHi() {
+		return mean() + (stddev() / Math.sqrt(testCount));
+	}
+
+	/**
+	 * test client to perform the experiments.
+	 * 
+	 * @param args
+	 *            provided arguments in the format N T
+	 */
+	public static void main(String[] args) {
+
+		if (args.length != 2) {
+			throw new java.lang.IllegalArgumentException(
+			        "Wrong number of arguments");
+		}
+
+		int n = Integer.parseInt(args[0]);
+		int t = Integer.parseInt(args[1]);
+
+		PercolationStats ps = new PercolationStats(n, t);
+
+		StdOut.println("mean\t\t\t= " + ps.mean());
+		StdOut.println("stddev\t\t\t= " + ps.stddev());
+		StdOut.println("95% confidence interval\t= " + ps.confidenceLo() + ", "
+		        + ps.confidenceHi());
+	}
 }
