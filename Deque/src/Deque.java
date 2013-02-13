@@ -12,143 +12,183 @@ import java.util.Iterator;
 public class Deque<T> implements Iterable<T> {
 
     /**
-     * The internal storage array
+     * The internal storage list
      */
-    @SuppressWarnings("unchecked")
-    private T[] tArray    = (T[]) new Object[1];
+    private Node headNode;
+    private Node tailNode;
     /**
-     * The index of the item at the head of the list
+     * The count of populated list items
      */
-    private int headIndex = 0;
-    /**
-     * The index of the item at the tail of the list
-     */
-    private int tailIndex = 0;
+    private int size = 0;
 
+    /**
+     * Creates a new, empty deque
+     */
     public Deque() {
 
     }
 
+    /**
+     * Indicates if the deque is empty.
+     * 
+     * @return true if the deque is empty.
+     */
     public boolean isEmpty() {
-        return headIndex == tailIndex;
+        return size == 0;
     }
 
+    /**
+     * Returns the number of items on the deque.
+     * 
+     * @return the number of items on the deque.
+     */
     public int size() {
-        return headIndex <= tailIndex && tailIndex != 0 ? (tArray.length - tailIndex) + headIndex : headIndex - tailIndex;
+        return size;
     }
 
+    /**
+     * Inserts the specified item at the front of the deque,
+     * 
+     * @param item
+     *            Item to insert
+     */
     public void addFirst(T item) {
-        int firstIndex = headIndex == 0 && tailIndex == 0 ? headIndex++ : getNextIndex();
-        tArray[firstIndex] = item;
-    }
-
-    private int getNextIndex() {
-
-        if (size() == tArray.length) {
-            resizeArray(size() << 1);
+        if (item == null) {
+            throw new java.lang.NullPointerException("Cannot add null items.");
         }
 
-        if (headIndex < tArray.length) {
-            return headIndex++;
-        }
+        try {
+            Node newFirst = new Node();
+            newFirst.item = item;
 
-        // loop to start of array
-        headIndex = 0;
-        return 0;
-    }
-
-    private int getPrevIndex() {
-
-        if (size() == tArray.length) {
-            resizeArray(size() << 1);
-        }
-
-        if (tailIndex > 0) {
-            return tailIndex--;
-        }
-        // loop to start of array
-        tailIndex = tArray.length - 1;
-        return tailIndex;
-
-    }
-
-    @SuppressWarnings("unchecked")
-    private void resizeArray(int newSize) {
-
-        int newTail = (newSize - tArray.length) % 2 == 0 ? (newSize - tArray.length) / 2
-                : ((newSize - tArray.length) / 2) - 1;
-
-        if(newTail < 0)         {
-            newTail = 0;
-        }
-        T[] swapArray = (T[]) new Object[newSize];
-
-        for (int i = newTail; i < newTail + (tArray.length); i++) {
-            if (tailIndex > 0 && tailIndex >= headIndex) {
-                swapArray[i] = tArray[tailIndex++];
-            }
-            if (tailIndex == tArray.length) {
-                tailIndex = 0;
+            if (headNode == null) {
+                headNode = newFirst;
+                tailNode = headNode;
+            } else {
+                newFirst.next = headNode;
+                headNode = newFirst;
             }
 
+            size++;
+        } catch (OutOfMemoryError e) {
+            System.out.println("out of memory after " + size + " items.");
+            throw e;
         }
-
-        tailIndex = newTail;
-        headIndex = newTail + tArray.length;
-        tArray = swapArray;
     }
 
+    /**
+     * Inserts the specified item at the end of the deque,
+     * 
+     * @param item
+     *            Item to insert
+     */
     public void addLast(T item) {
-        int nextIndex = headIndex == 0 && tailIndex == 0 ? headIndex++ : getPrevIndex();
-        tArray[nextIndex] = item;
+        if (item == null) {
+            throw new java.lang.NullPointerException("Cannot add null items.");
+        }
+
+        Node newLast = new Node();
+        newLast.item = item;
+
+        if (headNode == null) {
+            headNode = newLast;
+        } else {
+            Node node = headNode;
+            while (node.next != null) {
+                node = node.next;
+            }
+            node.next = newLast;
+            newLast.prev = node;
+        }
+
+        tailNode = newLast;
+
+        size++;
     }
 
+    /**
+     * Removes and returns the item at the front of the deque.
+     * 
+     * @return the item that was at the front of the deque.
+     */
     public T removeFirst() {
-        T item = tArray[headIndex - 1];
-        tArray[headIndex - 1] = null;
-        if (headIndex == 0 && headIndex != tailIndex) {
-            headIndex = tArray.length - 1;
+        if (size == 0) {
+            throw new java.util.NoSuchElementException(
+                    "No elements in the collection");
         }
-        if (size() < tArray.length / 4) {
-            resizeArray(size() >> 1);
-        }
+
+        Node oldHead = headNode;
+        headNode = oldHead.next;
+        T item = oldHead.item;
+        oldHead = null;
+        size--;
         return item;
     }
 
+    /**
+     * Removes and returns the item at the end of the deque.
+     * 
+     * @return the item that was at the end of the deque.
+     */
     public T removeLast() {
-        T item = tArray[tailIndex];
-        tArray[tailIndex] = null;
-        if (tailIndex == tArray.length - 1 && tailIndex != headIndex) {
-            tailIndex = 0;
+        if (size == 0) {
+            throw new java.util.NoSuchElementException(
+                    "No elements in the collection");
         }
-        if (size() < tArray.length / 4) {
-            resizeArray(size() >> 1);
-        }
+
+        Node node = tailNode;
+        // while (node.next != null) {
+        // prevNode = node;
+        // node = node.next;
+        // }
+
+        T item = node.item;
+        tailNode = node.prev;
+        tailNode.next = null;
+        node = null;
+        size--;
         return item;
     }
 
+    /**
+     * An iterator that iterates from the front to the end of the deque
+     */
     public Iterator<T> iterator() {
 
         return new Iterator<T>() {
 
+            Node currentNode = null;
+
             @Override
             public boolean hasNext() {
-                // TODO Auto-generated method stub
-                return false;
+                return currentNode == null ? headNode != null
+                        : currentNode.next != null;
             }
 
             @Override
             public T next() {
-                // TODO Auto-generated method stub
-                return null;
+                if (!hasNext()) {
+                    throw new java.util.NoSuchElementException();
+                }
+                if (currentNode == null) {
+                    currentNode = headNode;
+                    return currentNode.item;
+                }
+                currentNode = currentNode.next;
+                return currentNode.item;
             }
 
             @Override
             public void remove() {
-                // TODO Auto-generated method stub
-
+                throw new java.lang.UnsupportedOperationException();
             }
         };
 
+    }
+
+    private class Node {
+        T item;
+        Node next;
+        Node prev;
     }
 }
