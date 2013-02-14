@@ -6,12 +6,12 @@ import java.util.Iterator;
  * @date 13 Feb 2013
  * 
  */
-public class RandomizedQueue<T> implements Iterable<T> {
+public class RandomizedQueue<Item> implements Iterable<Item> {
 
     /**
      * The internal storage array
      */
-    private T[] tArray;
+    private Item[] tArray;
     /**
      * The count of populated list items
      */
@@ -48,7 +48,7 @@ public class RandomizedQueue<T> implements Iterable<T> {
      * @param item
      *            Item to add.
      */
-    public void enqueue(T item) {
+    public void enqueue(Item item) {
         if (item == null) {
             throw new java.lang.NullPointerException("Cannot add null items.");
         }
@@ -59,9 +59,9 @@ public class RandomizedQueue<T> implements Iterable<T> {
         }
 
         // Randomise on insert - saves headaches later!
-        int index = StdRandom.uniform(size++);
+        int index = StdRandom.uniform(++size);
         checkIfResizeRequired();
-        tArray[size] = tArray[index];
+        tArray[size - 1] = tArray[index];
         tArray[index] = item;
     }
 
@@ -70,12 +70,12 @@ public class RandomizedQueue<T> implements Iterable<T> {
      * 
      * @return a random item.
      */
-    public T dequeue() {
+    public Item dequeue() {
         if (size == 0) {
             throw new java.util.NoSuchElementException();
         }
 
-        T item = tArray[--size];
+        Item item = tArray[--size];
         tArray[size] = null;
         checkIfResizeRequired();
         return item;
@@ -86,11 +86,11 @@ public class RandomizedQueue<T> implements Iterable<T> {
      * 
      * @return A random item.
      */
-    public T sample() {
+    public Item sample() {
         if (size == 0) {
             throw new java.util.NoSuchElementException();
         }
-        int rnd = StdRandom.uniform(size - 1);
+        int rnd = StdRandom.uniform(size);
         return tArray[rnd];
     }
 
@@ -100,7 +100,7 @@ public class RandomizedQueue<T> implements Iterable<T> {
      * @return An independent iterator over items in random order.
      */
     @Override
-    public Iterator<T> iterator() {
+    public Iterator<Item> iterator() {
 
         return new RndIterator(tArray, size);
 
@@ -110,9 +110,9 @@ public class RandomizedQueue<T> implements Iterable<T> {
      * An independent random iterator implementation
      * 
      */
-    private class RndIterator implements Iterator<T> {
+    private class RndIterator implements Iterator<Item> {
 
-        private T[] items;
+        private Item[] items;
         private int size;
         private int index;
 
@@ -125,8 +125,8 @@ public class RandomizedQueue<T> implements Iterable<T> {
          *            Queue size.
          */
         @SuppressWarnings("unchecked")
-        public RndIterator(T[] m_items, int m_size) {
-            items = (T[]) new Object[m_size];
+        public RndIterator(Item[] m_items, int m_size) {
+            items = (Item[]) new Object[m_size];
             size = m_size;
 
             for (int i = 0; i < m_size; i++) {
@@ -148,12 +148,12 @@ public class RandomizedQueue<T> implements Iterable<T> {
          * Gets the next item to be consumed.
          */
         @Override
-        public T next() {
+        public Item next() {
             if (index == size) {
                 throw new java.util.NoSuchElementException();
             }
 
-            return tArray[index++];
+            return items[index++];
         }
 
         @Override
@@ -165,8 +165,8 @@ public class RandomizedQueue<T> implements Iterable<T> {
     }
 
     @SuppressWarnings("unchecked")
-    private void createArrayAndAddItem(T item) {
-        tArray = (T[]) new Object[2];
+    private void createArrayAndAddItem(Item item) {
+        tArray = (Item[]) new Object[2];
         tArray[0] = item;
         size++;
     }
@@ -176,10 +176,10 @@ public class RandomizedQueue<T> implements Iterable<T> {
      */
     private void checkIfResizeRequired() {
 
-        if (size == tArray.length - 1) {
+        if (size > tArray.length) {
             resizeArray(tArray.length << 1); // double the size
         }
-        if (size <= (tArray.length - 1) / 4) {
+        if (size <= tArray.length / 4 && tArray.length > 2) {
             resizeArray(tArray.length >> 1); // halve the size
         }
     }
@@ -193,9 +193,9 @@ public class RandomizedQueue<T> implements Iterable<T> {
      */
     @SuppressWarnings("unchecked")
     private void resizeArray(int newSize) {
-        T[] swapArray = (T[]) new Object[newSize];
+        Item[] swapArray = (Item[]) new Object[newSize];
 
-        for (int i = 0; i <= size; i++) {
+        for (int i = 0; i < (newSize < tArray.length ? size : size - 1); i++) {
             swapArray[i] = tArray[i];
         }
 

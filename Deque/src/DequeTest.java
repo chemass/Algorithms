@@ -235,33 +235,18 @@ public class DequeTest {
 
     }
 
-    @Test
-    public final void testHUUUUUUUUUUUUGE() {
-
-        Deque<Integer> dq = new Deque<Integer>();
-        for (int i = 1; i <= 5000000; i++) {
-            dq.addFirst(i);
-        }
-        for (int i = 5000000; i > 0; i--) {
-            int r = dq.removeFirst();
-            if (r != i) {
-                fail("incorrect result. Expected " + i + " actual " + r);
-            }
-        }
-        if (!dq.isEmpty()) {
-            fail("Reports not empty");
-        }
-
-        for (int i = 1; i <= 5000000; i++) {
-            dq.addFirst(i);
-        }
-        for (int i = 5000000; i > 0; i--) {
-            int r = dq.removeFirst();
-            if (r != i) {
-                fail("incorrect result. Expected " + i + " actual " + r);
-            }
-        }
-    }
+    /*
+     * @Test public final void testHUUUUUUUUUUUUGE() {
+     * 
+     * Deque<Integer> dq = new Deque<Integer>(); for (int i = 1; i <= 5000000;
+     * i++) { dq.addFirst(i); } for (int i = 5000000; i > 0; i--) { int r =
+     * dq.removeFirst(); if (r != i) { fail("incorrect result. Expected " + i +
+     * " actual " + r); } } if (!dq.isEmpty()) { fail("Reports not empty"); }
+     * 
+     * for (int i = 1; i <= 5000000; i++) { dq.addFirst(i); } for (int i =
+     * 5000000; i > 0; i--) { int r = dq.removeFirst(); if (r != i) {
+     * fail("incorrect result. Expected " + i + " actual " + r); } } }
+     */
 
     @Test
     public final void testIterator() {
@@ -333,5 +318,127 @@ public class DequeTest {
         while (it.hasNext()) {
             System.out.println(it.next());
         }
+    }
+
+    @Test
+    public final void testAddFirstRemoveLast() {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            dq.addFirst(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            dq.removeLast();
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.addFirst(i);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.removeLast();
+        }
+    }
+
+    @Test
+    public final void testAddLastRemoveLast() {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            dq.addLast(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            dq.removeLast();
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.addLast(i);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.removeLast();
+        }
+    }
+
+    @Test
+    public final void testAddLastRemoveFirst() {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            dq.addLast(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            dq.removeFirst();
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.addLast(i);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.removeFirst();
+        }
+    }
+
+    @Test
+    public final void testAddFirstRemoveFirst() {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            dq.addFirst(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            dq.removeFirst();
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.addFirst(i);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            dq.removeFirst();
+        }
+    }
+
+    @Test
+    public final void testAddRemoveRandomOrder() {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 5; i++) {
+            int x = StdRandom.uniform(2);
+            if (x < 1)
+                dq.addFirst(i);
+            else
+                dq.addLast(i);
+        }
+
+        for (int i = 0; i < 5; i++) {
+            int x = StdRandom.uniform(2);
+            if (x < 1)
+                dq.removeFirst();
+            else
+                dq.removeLast();
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            int x = StdRandom.uniform(2);
+            if (x < 1)
+                dq.addFirst(i);
+            else
+                dq.addLast(i);
+        }
+
+        for (int i = 0; i < 1000; i++) {
+            int x = StdRandom.uniform(2);
+            if (x < 1)
+                dq.removeFirst();
+            else
+                dq.removeLast();
+        }
+
     }
 }

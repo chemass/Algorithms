@@ -9,7 +9,7 @@ import java.util.Iterator;
  * @login ccoxshall@gmail.com
  * @date 12 Feb 2013
  */
-public class Deque<T> implements Iterable<T> {
+public class Deque<Item> implements Iterable<Item> {
 
     /**
      * The internal storage list
@@ -52,7 +52,7 @@ public class Deque<T> implements Iterable<T> {
      * @param item
      *            Item to insert
      */
-    public void addFirst(T item) {
+    public void addFirst(Item item) {
         if (item == null) {
             throw new java.lang.NullPointerException("Cannot add null items.");
         }
@@ -66,6 +66,7 @@ public class Deque<T> implements Iterable<T> {
                 tailNode = headNode;
             } else {
                 newFirst.next = headNode;
+                headNode.prev = newFirst;
                 headNode = newFirst;
             }
 
@@ -82,7 +83,7 @@ public class Deque<T> implements Iterable<T> {
      * @param item
      *            Item to insert
      */
-    public void addLast(T item) {
+    public void addLast(Item item) {
         if (item == null) {
             throw new java.lang.NullPointerException("Cannot add null items.");
         }
@@ -93,10 +94,7 @@ public class Deque<T> implements Iterable<T> {
         if (headNode == null) {
             headNode = newLast;
         } else {
-            Node node = headNode;
-            while (node.next != null) {
-                node = node.next;
-            }
+            Node node = tailNode;
             node.next = newLast;
             newLast.prev = node;
         }
@@ -111,15 +109,21 @@ public class Deque<T> implements Iterable<T> {
      * 
      * @return the item that was at the front of the deque.
      */
-    public T removeFirst() {
+    public Item removeFirst() {
         if (size == 0) {
             throw new java.util.NoSuchElementException(
                     "No elements in the collection");
         }
 
         Node oldHead = headNode;
+        headNode = null;
+        Item item = oldHead.item;
         headNode = oldHead.next;
-        T item = oldHead.item;
+        if (headNode == null) {
+            tailNode = null;
+        } else {
+            headNode.prev = null;
+        }
         oldHead = null;
         size--;
         return item;
@@ -130,7 +134,7 @@ public class Deque<T> implements Iterable<T> {
      * 
      * @return the item that was at the end of the deque.
      */
-    public T removeLast() {
+    public Item removeLast() {
         if (size == 0) {
             throw new java.util.NoSuchElementException(
                     "No elements in the collection");
@@ -142,9 +146,13 @@ public class Deque<T> implements Iterable<T> {
         // node = node.next;
         // }
 
-        T item = node.item;
+        Item item = node.item;
         tailNode = node.prev;
-        tailNode.next = null;
+        if (tailNode == null) {
+            headNode = null;
+        } else {
+            tailNode.next = null;
+        }
         node = null;
         size--;
         return item;
@@ -153,9 +161,9 @@ public class Deque<T> implements Iterable<T> {
     /**
      * An iterator that iterates from the front to the end of the deque
      */
-    public Iterator<T> iterator() {
+    public Iterator<Item> iterator() {
 
-        return new Iterator<T>() {
+        return new Iterator<Item>() {
 
             Node currentNode = null;
 
@@ -166,7 +174,7 @@ public class Deque<T> implements Iterable<T> {
             }
 
             @Override
-            public T next() {
+            public Item next() {
                 if (!hasNext()) {
                     throw new java.util.NoSuchElementException();
                 }
@@ -187,8 +195,34 @@ public class Deque<T> implements Iterable<T> {
     }
 
     private class Node {
-        T item;
+        Item item;
         Node next;
         Node prev;
+    }
+
+    public static void main(String[] args) {
+        Deque<Integer> dq = new Deque<Integer>();
+
+        for (int i = 0; i < 10000; i++) {
+            if (i % 2 == 0)
+                dq.addFirst(i);
+            else
+                dq.addLast(i);
+        }
+
+        for (int i = 9999; i >= 0; i--) {
+            int result;
+            if (i % 2 == 0) {
+                result = dq.removeFirst();
+                if (result != i)
+                    StdOut.println("expected " + i + " actual " + result);
+            } else {
+                result = dq.removeLast();
+                if (result != i)
+                    StdOut.println("expected " + i + " actual " + result);
+            }
+        }
+
+        StdOut.println("completed.");
     }
 }
